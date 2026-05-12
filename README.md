@@ -187,14 +187,14 @@ Koordynuje przebieg gry: kolejność graczy, zarządzanie turą, wywołanie rzut
 
 ## Technologie i środowisko
 
-| Element             | Wartość                          |
-|--------------------|----------------------------------|
-| Język              | C# 12                            |
-| Framework          | .NET 8                           |
-| Typ projektu       | Aplikacja konsolowa              |
-| Testy jednostkowe  | xUnit + FluentAssertions         |
-| IDE                | Visual Studio 2022 / Rider       |
-| Wersjonowanie      | Git + GitHub                     |
+| Element             | Wartość                  |
+|--------------------|--------------------------|
+| Język              | C# 12                    |
+| Framework          | .NET 10                  |
+| Typ projektu       | Aplikacja konsolowa      |
+| Testy jednostkowe  | xUnit + FluentAssertions |
+| IDE                | Rider                    |
+| Wersjonowanie      | Git + GitHub             |
 
 ---
 
