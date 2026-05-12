@@ -1,51 +1,40 @@
 # 🎲 Gra w Kości (Yahtzee)
 
-> Konsolowa gra planszowa dla 1–4 graczy (ludzkich i/lub AI) zaimplementowana w **C# / .NET 9**, oparta na zasadach klasycznej gry Yahtzee.
+> Konsolowa gra dla 1–4 graczy (ludzkich i/lub AI) zaimplementowana w **C# / .NET 9**, oparta na zasadach klasycznej gry Yahtzee.
 
 ---
 
 ## Spis treści
 
-1. [Opis gry](#opis-gry)
-2. [Uruchomienie](#uruchomienie)
-3. [Zasady gry](#zasady-gry)
-4. [System punktacji](#system-punktacji)
-5. [Architektura projektu](#architektura-projektu)
+1. [Uruchomienie](#uruchomienie)
+2. [Zasady gry](#zasady-gry)
+3. [System punktacji](#system-punktacji)
+4. [Decyzje projektowe](#decyzje-projektowe)
+5. [Architektura](#architektura)
 6. [Gracz AI](#gracz-ai)
-7. [Interfejs użytkownika](#interfejs-użytkownika)
-8. [Testy](#testy)
-
----
-
-## Opis gry
-
-Gra w kości to turowa gra logiczno-losowa. Każdy gracz stara się uzyskać jak największą liczbę punktów, rzucając pięcioma klasycznymi kośćmi sześciennymi i wybierając optymalne kategorie punktowania. Gra kończy się, gdy wszyscy gracze zapełnią swoje karty wyników (13 kategorii na gracza).
-
-Obsługiwane tryby:
-- **PvP** – od 2 do 4 graczy ludzkich
-- **PvAI** – gracze ludzcy z graczami AI (łącznie 2–4)
-- **AI vs AI** – wyłącznie gracze sterowani przez AI
+7. [Testy](#testy)
 
 ---
 
 ## Uruchomienie
 
-**Wymagania:** .NET 9 SDK
+**Wymagania:** .NET 9 SDK ([pobierz](https://dotnet.microsoft.com/download/dotnet/9.0))
 
 ```bash
 # Sklonuj repozytorium
 git clone <url>
+cd kosci-zadanie-rekrutacyjne
 
 # Uruchom grę
 cd GraWKosci
 dotnet run
 
-# Uruchom testy
+# Uruchom testy jednostkowe
 cd GraWKosci.Tests
 dotnet test
 ```
 
-Na starcie gra pyta o liczbę graczy ludzkich (1–4), a następnie o liczbę graczy AI. Łączna liczba uczestników musi wynosić co najmniej 2.
+Po uruchomieniu gra pyta o liczbę graczy ludzkich (1–4), a następnie o liczbę graczy AI. Łączna liczba uczestników musi wynosić co najmniej 2.
 
 ---
 
@@ -54,159 +43,29 @@ Na starcie gra pyta o liczbę graczy ludzkich (1–4), a następnie o liczbę gr
 ### Przebieg tury
 
 ```
-Rzut 1 (obowiązkowy): gracz rzuca wszystkimi 5 kośćmi
+Rzut 1 (obowiązkowy) – gracz rzuca wszystkimi 5 kośćmi
          ↓
-Wybór kości do zatrzymania (lub Enter — rzut wszystkimi)
+Wybór kości do zatrzymania (numery oddzielone spacją) lub Enter – rzut wszystkimi
          ↓
-Rzut 2 (opcjonalny): ponowny rzut niezatrzymanymi kośćmi
+Rzut 2 (opcjonalny) – ponowny rzut niezatrzymanymi kośćmi
          ↓
 Wybór kości do zatrzymania
          ↓
-Rzut 3 (opcjonalny): ostatni rzut niezatrzymanymi kośćmi
+Rzut 3 (opcjonalny) – ostatni rzut niezatrzymanymi kośćmi
          ↓
-Obowiązkowy wybór kategorii z karty wyników → zapis punktów
+Obowiązkowy wybór kategorii → zapis punktów
 ```
 
 **Ważne zasady:**
-- Gracz **zawsze musi** wybrać kategorię po zakończeniu serii rzutów, nawet jeśli żadna kombinacja nie pasuje (wynik = 0 pkt).
 - Każdą kategorię można użyć **tylko raz**.
-- Gracz może zakończyć serię przed 3. rzutem — wybierając kategorię po 1. lub 2. rzucie.
+- Po zakończeniu rzutów gracz **musi** wybrać kategorię — nawet jeśli żadna kombinacja nie pasuje (wynik = 0 pkt).
+- Gracz może wybrać kategorię po 1. lub 2. rzucie, kończąc turę wcześniej.
 
----
-
-## System punktacji
-
-### Sekcja górna (Tabelka 1)
-
-Punkty liczone jako **suma wyrzuconych kości** danej wartości.
-
-| Kategoria | Opis                        | Przykład (4, 3, 4, 4, 1) |
-|-----------|-----------------------------|--------------------------|
-| Jedynki   | Suma wyrzuconych jedynek    | 1 pkt                    |
-| Dwójki    | Suma wyrzuconych dwójek     | 0 pkt                    |
-| Trójki    | Suma wyrzuconych trójek     | 3 pkt                    |
-| Czwórki   | Suma wyrzuconych czwórek    | 12 pkt                   |
-| Piątki    | Suma wyrzuconych piątek     | 0 pkt                    |
-| Szóstki   | Suma wyrzuconych szóstek    | 0 pkt                    |
-
-**Premia:** jeśli suma sekcji górnej osiągnie ≥ 63 pkt, gracz otrzymuje jednorazowo **+35 pkt**.  
-Próg 63 odpowiada uzyskaniu co najmniej trzech kości każdej wartości w każdej kategorii (3×1 + 3×2 + … + 3×6 = 63).
-
-### Sekcja dolna (Tabelka 2)
-
-| Kategoria      | Warunek                                              | Punkty                     |
-|----------------|------------------------------------------------------|----------------------------|
-| Trójka         | Co najmniej 3 jednakowe kości                        | Suma wszystkich 5 kości    |
-| Czwórka        | Co najmniej 4 jednakowe kości                        | Suma wszystkich 5 kości    |
-| Full           | Trójka + para                                        | 25 pkt                     |
-| Mały strit     | 4 kolejne kości (1-2-3-4, 2-3-4-5 lub 3-4-5-6)      | 30 pkt                     |
-| Duży strit     | 5 kolejnych kości (1-2-3-4-5 lub 2-3-4-5-6)         | 40 pkt                     |
-| Król (Yahtzee) | 5 jednakowych kości                                  | 50 pkt                     |
-| Szansa         | Zawsze dostępna                                      | Suma wszystkich 5 kości    |
-
----
-
-## Architektura projektu
-
-### Struktura katalogów
-
-```
-kosci-zadanie-rekrutacyjne/
-├── kosci-zadanie-rekrutacyjne.sln
-├── GraWKosci/
-│   ├── Program.cs                   # Punkt wejścia: setup graczy, uruchomienie silnika
-│   ├── Models/
-│   │   ├── Dice.cs                  # Model kości (Value, IsHeld)
-│   │   ├── Player.cs                # Model gracza (Name, IsAi, ScoreCard)
-│   │   ├── ScoreCard.cs             # Karta wyników: 13 kategorii, sumy, premia, IsComplete
-│   │   ├── GameState.cs             # Stan gry: lista graczy, aktualny gracz, IsGameFinished
-│   │   └── ScoreCategory.cs         # Enum 13 kategorii punktowych
-│   ├── Services/
-│   │   ├── DiceRoller.cs            # RollAll() i RollUnheld() — losowanie kości
-│   │   ├── ScoreCalculator.cs       # Calculate() i Apply() — statyczna logika punktacji
-│   │   ├── GameEngine.cs            # Główna pętla gry, tury ludzkie i AI
-│   │   └── AiPlayer.cs              # Strategia AI: wybór kości i kategorii
-│   └── UI/
-│       └── ConsoleRenderer.cs       # Renderowanie kości i podpowiedzi kategorii
-└── GraWKosci.Tests/
-    └── (testy — zob. TESTS.md)
-```
-
-### Kluczowe klasy
-
-#### `Dice`
-```csharp
-public class Dice
-{
-    public int Value { get; set; }   // 1–6
-    public bool IsHeld { get; set; } // czy zatrzymana między rzutami
-}
-```
-
-#### `ScoreCard`
-Przechowuje wartości 13 kategorii jako `int?` (null = niewypełniona). Udostępnia właściwości:
-- `UpperSectionTotal` — suma sekcji górnej
-- `UpperBonus` — 35 jeśli `UpperSectionTotal >= 63` i premia jeszcze nie przyznana, inaczej 0
-- `LowerSectionTotal` — suma sekcji dolnej
-- `TotalScore` — łączny wynik
-- `IsComplete` — true gdy wszystkie 13 kategorii wypełnione
-- `IsUsed(ScoreCategory)` — sprawdza, czy kategoria jest już zajęta
-- `BonusApplied` — flaga zapobiegająca wielokrotnemu naliczeniu premii
-
-#### `ScoreCalculator` (statyczny)
-- `Calculate(ScoreCategory, Dice[])` — zwraca punkty dla danej kombinacji i kategorii
-- `Apply(ScoreCard, ScoreCategory, int)` — zapisuje wynik do karty
-
-#### `GameEngine`
-Zarządza pętlą gry (`Run()`), obsługuje tury graczy ludzkich (`PlayHumanTurn`) i AI (`PlayAiTurn`), przyjmuje wybór kategorii i pilnuje kolejności graczy. Po zakończeniu gry wyświetla ranking.
-
-#### `AiPlayer`
-- `ChooseDiceToHold(Dice[], int rollsLeft, ScoreCard)` — zwraca `bool[5]` — które kości zatrzymać
-- `ChooseCategory(Dice[], ScoreCard)` — zwraca `ScoreCategory` do zapisu
-
-#### `DiceRoller`
-- `RollAll()` — tworzy 5 nowych, niezatrzymanych kości z losowymi wartościami
-- `RollUnheld(Dice[])` — ponownie rzuca kośćmi z `IsHeld == false`
-
----
-
-## Gracz AI
-
-AI podejmuje decyzje oparte na heurystykach zbliżonych do optymalnej strategii Yahtzee.
-
-### Wybór kości do zatrzymania (priorytety)
-
-1. Duży strit → zatrzymaj wszystkie
-2. Mały strit (kategoria wolna) → zatrzymaj cztery kości tworzące strit
-3. Pięć jednaków → zatrzymaj wszystkie
-4. Full → zatrzymaj wszystkie
-5. Cztery jednakowe → zatrzymaj cztery
-6. Trzy jednakowe → zatrzymaj trójkę (lub wszystkie jeśli przed 3. rzutem i to full)
-7. Dwie pary → zostaw wyższą parę (z wyjątkami dla niskich par + sekwencji)
-8. Para → zostaw parę (z wyjątkami dla pary jedynek)
-9. Brak par ani strita → zostaw kostkę o wartości 5 (jeśli jest)
-
-### Wybór kategorii (priorytety)
-
-1. Yahtzee (5 jednaków)
-2. Duży strit
-3. Mały strit
-4. Full
-5. Cztery/trzy jednakowe — ewentualnie przekierowanie do sekcji górnej
-6. Szansa przy sumie ≥ 22 lub ≥ 20 (zależnie od układu)
-7. Jedynki jako "śmietnik" dla słabych układów
-8. Fallback: dostępna kategoria z najwyższym wynikiem
-
----
-
-## Interfejs użytkownika
-
-Gra działa w trybie konsolowym.
-
-**Przykładowy widok tury:**
+### Interfejs konsolowy
 
 ```
 === Tura gracza: Michał ===
+
 [1:4 ] [2:3 ] [3:4 ] [4:4 ] [5:1 ]
 
 Pozostałe rzuty: 2
@@ -226,22 +85,163 @@ Wybierz kategorię (wpisz nazwę):
 Zapisano: ThreeOfAKind -> 20 pkt
 ```
 
-Kości oznaczone `*` są zatrzymane. Renderer wyświetla podpowiedzi tylko dla kategorii jeszcze niewykorzystanych.
+Kości oznaczone `*` są zatrzymane. Podpowiedzi pokazują wyłącznie kategorie jeszcze niewykorzystane.
 
-**Końcowy ranking:**
+---
+
+## System punktacji
+
+### Sekcja górna
+
+Punkty liczone jako suma wyrzuconych kości danej wartości.
+
+| Kategoria | Opis                     | Przykład `[4,3,4,4,1]` |
+|-----------|--------------------------|------------------------|
+| Ones      | Suma jedynek             | 1 pkt                  |
+| Twos      | Suma dwójek              | 0 pkt                  |
+| Threes    | Suma trójek              | 3 pkt                  |
+| Fours     | Suma czwórek             | 12 pkt                 |
+| Fives     | Suma piątek              | 0 pkt                  |
+| Sixes     | Suma szóstek             | 0 pkt                  |
+
+**Premia:** suma sekcji górnej ≥ 63 pkt → jednorazowo **+35 pkt**.  
+Próg 63 odpowiada trafieniu co najmniej 3 kości każdej wartości w każdej kategorii (3×1 + 3×2 + … + 3×6 = 63).
+
+### Sekcja dolna
+
+| Kategoria      | Warunek                                         | Punkty                  |
+|----------------|-------------------------------------------------|-------------------------|
+| ThreeOfAKind   | ≥ 3 jednakowe kości                             | Suma wszystkich 5 kości |
+| FourOfAKind    | ≥ 4 jednakowe kości                             | Suma wszystkich 5 kości |
+| FullHouse      | Trójka + para                                   | 25 pkt                  |
+| SmallStraight  | 4 kolejne kości (1-2-3-4, 2-3-4-5 lub 3-4-5-6) | 30 pkt                  |
+| LargeStraight  | 5 kolejnych kości (1-2-3-4-5 lub 2-3-4-5-6)    | 40 pkt                  |
+| Yahtzee        | 5 jednakowych kości                             | 50 pkt                  |
+| Chance         | Zawsze dostępna                                 | Suma wszystkich 5 kości |
+
+---
+
+## Decyzje projektowe
+
+### Wybór technologii
+
+Projekt implementuje C# / .NET 9. Język naturalnie wspiera wzorce obiektowe i funkcyjne (LINQ, pattern matching, wyrażenia switch), które dobrze pasują do domeny gry — obliczanie kombinacji, filtrowanie kategorii, mapowanie wartości. Brak zewnętrznych zależności poza xUnit upraszcza setup i eliminuje zbędny narzut.
+
+### `int?` jako reprezentacja stanu karty
+
+Kategorie w `ScoreCard` są przechowywane jako `int?` (nullable int). `null` oznacza kategorię **niezapisaną**, a `0` — kategorię **zapisaną z wynikiem zero**. To kluczowe rozróżnienie: gracz musi móc świadomie poświęcić kategorię (wpisać 0 pkt), a system musi to odróżnić od pola jeszcze nietkniętego. Alternatywą byłoby trzymanie osobnego słownika flag `bool[]`, ale model z nullable jest bardziej zwięzły i czytelny — sprawdzenie `Ones.HasValue` jest oczywiste.
+
+### `ScoreCalculator` jako klasa statyczna
+
+Logika obliczania i zapisywania wyników nie posiada stanu — te same kości i kategoria zawsze dają ten sam wynik. Klasa statyczna jednoznacznie wyraża tę bezstanowość, eliminuje potrzebę instancjowania i upraszcza testowanie (wywołania `ScoreCalculator.Calculate(...)` bez żadnego setup). Gdyby w przyszłości pojawiła się potrzeba wstrzykiwania (np. mockowanie w testach integracyjnych), wystarczyłoby wyekstrahować interfejs.
+
+### Separacja modeli, serwisów i UI
+
+Projekt dzieli kod na trzy warstwy:
+- **Models** — czyste klasy danych bez logiki domenowej (`Dice`, `Player`, `ScoreCard`, `GameState`, `ScoreCategory`)
+- **Services** — logika gry niezależna od sposobu prezentacji (`DiceRoller`, `ScoreCalculator`, `GameEngine`, `AiPlayer`)
+- **UI** — renderowanie (`ConsoleRenderer`)
+
+Dzięki temu logika gry jest w pełni testowalna bez uruchamiania konsoli, a ewentualna zamiana interfejsu konsolowego na graficzny wymaga pracy tylko w warstwie UI.
+
+### `DiceRoller` jako klasa instancyjna
+
+W odróżnieniu od `ScoreCalculator`, `DiceRoller` jest instancją — kapsułkuje obiekt `Random`. Pozwala to w przyszłości wstrzyknąć `Random` z seedem przez konstruktor i uzyskać deterministyczne rzuty w testach. Aktualne testy `DiceRollerTests` weryfikują zakres wartości (1–6) i niezmienność zatrzymanych kości bez potrzeby seedowania.
+
+### `BonusApplied` jako flaga
+
+Premia za sekcję górną (35 pkt przy ≥ 63 pkt) jest jednorazowa. Flaga `BonusApplied` w `ScoreCard` zapobiega wielokrotnemu naliczeniu premii, gdyby `TotalScore` był wywoływany wielokrotnie podczas jednej gry. `UpperBonus` zwraca 35 tylko gdy `!BonusApplied && UpperSectionTotal >= 63`; po przyznaniu premii `BonusApplied` jest ustawiane na `true`.
+
+### Minimum 2 graczy
+
+Gra wymaga co najmniej 2 uczestników — tryb jednoosobowy nie ma sensu bez rywalizacji i rankingu końcowego. Jeżeli gracz poda 1 gracza ludzkiego i 0 AI, program automatycznie dodaje drugiego gracza AI i informuje o tym użytkownika, zamiast zgłaszać błąd.
+
+### Kolejność graczy
+
+Gracze wykonują tury naprzemiennie w kolejności, w której zostali dodani (round-robin). Indeks aktualnego gracza jest przechowywany w `GameState.CurrentPlayerIndex` i inkrementowany modulo liczba graczy po każdej turze. `GameEngine` pomija graczy z ukończoną kartą, dzięki czemu gra kończy się dopiero gdy **wszyscy** ukończą 13 tur.
+
+---
+
+## Architektura
 
 ```
-==========================
-       KONIEC GRY
-==========================
-
-1. Michał - 287 pkt <<< ZWYCIEZCA
-2. AI-1 [AI] - 251 pkt
-3. Kasia - 198 pkt
+kosci-zadanie-rekrutacyjne/
+├── kosci-zadanie-rekrutacyjne.sln
+├── GraWKosci/
+│   ├── Program.cs                   # Punkt wejścia: setup graczy, uruchomienie silnika
+│   ├── Models/
+│   │   ├── Dice.cs                  # Model kości: Value (1–6), IsHeld
+│   │   ├── Player.cs                # Model gracza: Name, IsAi, ScoreCard
+│   │   ├── ScoreCard.cs             # Karta wyników: 13 kategorii (int?), sumy, premia, IsComplete
+│   │   ├── GameState.cs             # Stan gry: lista graczy, CurrentPlayerIndex, IsGameFinished
+│   │   └── ScoreCategory.cs         # Enum 13 kategorii punktowych
+│   ├── Services/
+│   │   ├── DiceRoller.cs            # RollAll() i RollUnheld() — losowanie kości
+│   │   ├── ScoreCalculator.cs       # Calculate() i Apply() — bezstanowa logika punktacji
+│   │   ├── GameEngine.cs            # Główna pętla gry, tury ludzkie i AI, ranking końcowy
+│   │   └── AiPlayer.cs              # Heurystyczna strategia AI
+│   └── UI/
+│       └── ConsoleRenderer.cs       # Renderowanie kości i podpowiedzi kategorii
+└── GraWKosci.Tests/
+    ├── ScoreCalculatorTests.cs
+    ├── ScoreCardTests.cs
+    ├── GameStateTests.cs
+    ├── DiceRollerTests.cs
+    └── AiPlayerTests.cs
 ```
+
+---
+
+## Gracz AI
+
+AI podejmuje decyzje oparte na heurystykach zbliżonych do optymalnej strategii Yahtzee. Cała logika jest skupiona w klasie `AiPlayer` i podzielona na dwie metody publiczne.
+
+### Wybór kości do zatrzymania — `ChooseDiceToHold`
+
+Priorytety sprawdzane po kolei:
+
+1. `rollsLeft == 0` → zatrzymaj wszystkie (koniec rzutów)
+2. Duży strit → zatrzymaj wszystkie
+3. Mały strit (kategoria wolna) → zatrzymaj cztery kości tworzące strit, rzuć piątą
+4. Pięć jednaków → zatrzymaj wszystkie
+5. Full → zatrzymaj wszystkie
+6. Cztery jednakowe → zatrzymaj cztery
+7. Trzy jednakowe → zatrzymaj trójkę
+8. Dwie pary → zatrzymaj wyższą parę (z wyjątkami dla par jedynek i sekwencji)
+9. Jedna para → zatrzymaj parę (z wyjątkami dla pary jedynek)
+10. Brak par i stritów → zatrzymaj jedną kostkę z wartością 5, jeśli jest
+
+### Wybór kategorii — `ChooseCategory`
+
+Priorytety:
+
+1. Yahtzee (5 jednakowych)
+2. LargeStraight
+3. SmallStraight
+4. FullHouse
+5. FourOfAKind → ewentualnie przekierowanie do odpowiedniej kategorii górnej
+6. ThreeOfAKind → przy sumie ≥ 25 lub przekierowanie do sekcji górnej
+7. Szansa przy słabych układach (suma ≥ 22 lub ≥ 20 zależnie od kontekstu)
+8. Jedynki jako kategoria do "poświęcenia" przy słabych układach
+9. Fallback → dostępna kategoria z najwyższym aktualnym wynikiem
 
 ---
 
 ## Testy
 
-Opis scenariuszy testowych — zob. [TESTS.md](./TESTS.md).
+148 przypadków testowych w 5 klasach, pokrywających całą logikę domenową.  
+Szczegółowy opis scenariuszy — zob. [TESTS.md](./TESTS.md).
+
+| Plik | Przypadki testowe |
+|------|-------------------|
+| ScoreCalculatorTests | 65 |
+| ScoreCardTests | 37 |
+| AiPlayerTests | 27 |
+| DiceRollerTests | 10 |
+| GameStateTests | 9 |
+| **Razem** | **148** |
+
+```bash
+cd GraWKosci.Tests
+dotnet test
+```
