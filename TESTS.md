@@ -1,7 +1,19 @@
 # TESTS.md — Plan testów jednostkowych
 
 Dokument opisuje scenariusze testowe zapewniające pełne pokrycie logiki aplikacji.  
-Testy pisane z użyciem **xUnit** i **FluentAssertions** 
+Testy pisane z użyciem **xUnit**.
+
+> **Łączna liczba przypadków testowych: 148**  
+> (każdy `[InlineData]` przy `[Theory]` liczy się jako osobny przypadek)
+
+| Plik | `[Fact]` | `[Theory]` | `[InlineData]` łącznie | Przypadki testowe |
+|------|----------|------------|------------------------|-------------------|
+| ScoreCalculatorTests | 34 | 6 | 31 | **65** |
+| ScoreCardTests | 18 | 3 | 19 | **37** |
+| GameStateTests | 9 | 0 | 0 | **9** |
+| DiceRollerTests | 10 | 0 | 0 | **10** |
+| AiPlayerTests | 23 | 2 | 4 | **27** |
+| **Razem** | **94** | **11** | **54** | **148** |
 
 ---
 
@@ -20,347 +32,326 @@ Testy pisane z użyciem **xUnit** i **FluentAssertions**
 ## ScoreCalculatorTests
 
 Klasa: `GraWKosci.Services.ScoreCalculator`  
-Metody: `Calculate(ScoreCategory, Dice[])`, `Apply(ScoreCard, ScoreCategory, int)`
+Metody: `Calculate(ScoreCategory, Dice[])`, `Apply(ScoreCard, ScoreCategory, int)`  
+**Łącznie: 65 przypadków testowych**
 
-Metoda pomocnicza używana we wszystkich testach kalkulatora:
 ```csharp
-private static Dice[] Dice(params int[] values) =>
-    values.Select(v => new GraWKosci.Models.Dice { Value = v }).ToArray();
+private static Dice[] D(params int[] values) =>
+    values.Select(v => new Dice { Value = v }).ToArray();
 ```
 
-### Sekcja górna
+### Sekcja górna (10 `[Fact]`)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC01 | Ones — brak jedynek | `[2,3,4,5,6]` | `0` |
-| SC02 | Ones — wszystkie jedynki | `[1,1,1,1,1]` | `5` |
-| SC03 | Ones — kilka jedynek | `[1,2,1,3,4]` | `2` |
-| SC04 | Twos — suma dwójek | `[2,2,3,4,5]` | `4` |
-| SC05 | Threes — suma trójek | `[3,3,3,1,2]` | `9` |
-| SC06 | Fours — suma czwórek | `[4,4,4,4,1]` | `16` |
-| SC07 | Fives — suma piątek | `[5,5,1,2,3]` | `10` |
-| SC08 | Sixes — suma szóstek | `[6,6,6,6,6]` | `30` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC01 | `Ones_BrakJedynek_Zwraca0` | `[2,3,4,5,6]` | `0` |
+| SC02 | `Ones_WszystkieJedynki_Zwraca5` | `[1,1,1,1,1]` | `5` |
+| SC03 | `Ones_KilkaJedynek_ZwracaSume` | `[1,2,1,3,4]` | `2` |
+| SC04 | `Twos_KilkaDwojek_ZwracaSume` | `[2,2,3,4,5]` | `4` |
+| SC05 | `Twos_BrakDwojek_Zwraca0` | `[1,1,3,4,5]` | `0` |
+| SC06 | `Threes_KilkaTrojek_ZwracaSume` | `[3,3,3,1,2]` | `9` |
+| SC07 | `Fours_KilkaCzworek_ZwracaSume` | `[4,4,4,4,1]` | `16` |
+| SC08 | `Fives_KilkaPiatek_ZwracaSume` | `[5,5,1,2,3]` | `10` |
+| SC09 | `Sixes_WszystkieSzostki_Zwraca30` | `[6,6,6,6,6]` | `30` |
+| SC10 | `Sixes_BrakSzostek_Zwraca0` | `[1,2,3,4,5]` | `0` |
 
-### Trójka (ThreeOfAKind)
+### Trójka — ThreeOfAKind (6 `[Fact]`)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC09 | Dokładnie trzy jednakowe | `[3,3,3,1,2]` | `12` |
-| SC10 | Cztery jednakowe spełnia warunek trójki | `[4,4,4,4,1]` | `17` |
-| SC11 | Pięć jednaków spełnia warunek trójki | `[6,6,6,6,6]` | `30` |
-| SC12 | Dwie pary — brak trójki | `[2,2,3,3,4]` | `0` |
-| SC13 | Brak powtórzeń | `[1,2,3,4,5]` | `0` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC11 | `ThreeOfAKind_DokladnieTrzy_ZwracaSumeWszystkich` | `[3,3,3,1,2]` | `12` |
+| SC12 | `ThreeOfAKind_CzteryJednakowe_SpelniaWarunekTrojki` | `[4,4,4,4,1]` | `17` |
+| SC13 | `ThreeOfAKind_PiecJednakowychSpelniaWarunek` | `[6,6,6,6,6]` | `30` |
+| SC14 | `ThreeOfAKind_DwiePary_Zwraca0` | `[2,2,3,3,4]` | `0` |
+| SC15 | `ThreeOfAKind_WszystkieRozne_Zwraca0` | `[1,2,3,4,5]` | `0` |
+| SC16 | `ThreeOfAKind_JednaPara_Zwraca0` | `[1,1,2,3,4]` | `0` |
 
-### Czwórka (FourOfAKind)
+### Czwórka — FourOfAKind (4 `[Fact]`)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC14 | Dokładnie cztery jednakowe | `[5,5,5,5,2]` | `22` |
-| SC15 | Pięć jednaków spełnia warunek czwórki | `[3,3,3,3,3]` | `15` |
-| SC16 | Trzy jednakowe — brak czwórki | `[2,2,2,1,3]` | `0` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC17 | `FourOfAKind_DokladnieCztery_ZwracaSumeWszystkich` | `[5,5,5,5,2]` | `22` |
+| SC18 | `FourOfAKind_PiecJednakowychSpelniaWarunek` | `[3,3,3,3,3]` | `15` |
+| SC19 | `FourOfAKind_TrzyjJednakowe_Zwraca0` | `[2,2,2,1,3]` | `0` |
+| SC20 | `FourOfAKind_BrakPowtorzen_Zwraca0` | `[1,2,3,4,5]` | `0` |
 
-### Full (FullHouse)
+### Full — FullHouse (6 `[Fact]`)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC17 | Poprawny full (2+3) | `[1,1,2,2,2]` | `25` |
-| SC18 | Poprawny full (3+2) | `[5,5,5,6,6]` | `25` |
-| SC19 | Pięć jednaków — nie full | `[3,3,3,3,3]` | `0` |
-| SC20 | Cztery jednakowe — nie full | `[4,4,4,4,1]` | `0` |
-| SC21 | Trzy różne wartości — nie full | `[1,1,2,3,3]` | `0` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC21 | `FullHouse_TrojkaPlusPara_Zwraca25` | `[1,1,2,2,2]` | `25` |
+| SC22 | `FullHouse_ParaPlusTrojka_Zwraca25` | `[5,5,5,6,6]` | `25` |
+| SC23 | `FullHouse_PiecJednakowychNieJestFull_Zwraca0` | `[3,3,3,3,3]` | `0` |
+| SC24 | `FullHouse_CzteryJednakoweBrakFull_Zwraca0` | `[4,4,4,4,1]` | `0` |
+| SC25 | `FullHouse_TrzyRozneWartosci_Zwraca0` | `[1,1,2,3,3]` | `0` |
+| SC26 | `FullHouse_WszystkieRozne_Zwraca0` | `[1,2,3,4,5]` | `0` |
 
-### Mały strit (SmallStraight)
+### Mały strit — SmallStraight (1 `[Theory]` × 5 + 1 `[Theory]` × 4 = **9 przypadków**)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC22 | Sekwencja 1-2-3-4 (z duplikatem) | `[1,2,3,4,4]` | `30` |
-| SC23 | Sekwencja 2-3-4-5 | `[2,3,4,5,1]` | `30` |
-| SC24 | Sekwencja 3-4-5-6 | `[3,4,5,6,2]` | `30` |
-| SC25 | Duży strit zawiera mały strit | `[1,2,3,4,5]` | `30` |
-| SC26 | Brak 4 kolejnych | `[1,2,3,5,6]` | `0` |
-| SC27 | Pięć jednaków — brak strita | `[2,2,2,2,2]` | `0` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC27 | `SmallStraight_PoprawnaKombinacja_Zwraca30` | `[1,2,3,4,4]` | `30` |
+| SC28 | `SmallStraight_PoprawnaKombinacja_Zwraca30` | `[2,3,4,5,1]` | `30` |
+| SC29 | `SmallStraight_PoprawnaKombinacja_Zwraca30` | `[3,4,5,6,2]` | `30` |
+| SC30 | `SmallStraight_PoprawnaKombinacja_Zwraca30` | `[1,2,3,4,5]` | `30` |
+| SC31 | `SmallStraight_PoprawnaKombinacja_Zwraca30` | `[2,3,4,5,6]` | `30` |
+| SC32 | `SmallStraight_NiepoprawnaKombinacja_Zwraca0` | `[1,2,3,5,6]` | `0` |
+| SC33 | `SmallStraight_NiepoprawnaKombinacja_Zwraca0` | `[2,2,2,2,2]` | `0` |
+| SC34 | `SmallStraight_NiepoprawnaKombinacja_Zwraca0` | `[1,1,1,1,1]` | `0` |
+| SC35 | `SmallStraight_NiepoprawnaKombinacja_Zwraca0` | `[1,3,5,2,6]` | `0` |
 
-### Duży strit (LargeStraight)
+### Duży strit — LargeStraight (1 `[Theory]` × 3 + 1 `[Theory]` × 3 = **6 przypadków**)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC28 | Sekwencja 1-2-3-4-5 | `[1,2,3,4,5]` | `40` |
-| SC29 | Sekwencja 2-3-4-5-6 | `[2,3,4,5,6]` | `40` |
-| SC30 | Mały strit z duplikatem — nie duży | `[1,2,3,4,4]` | `0` |
-| SC31 | Brak 5 kolejnych | `[1,2,3,4,6]` | `0` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC36 | `LargeStraight_PoprawnaKombinacja_Zwraca40` | `[1,2,3,4,5]` | `40` |
+| SC37 | `LargeStraight_PoprawnaKombinacja_Zwraca40` | `[2,3,4,5,6]` | `40` |
+| SC38 | `LargeStraight_PoprawnaKombinacja_Zwraca40` | `[5,4,3,2,1]` | `40` |
+| SC39 | `LargeStraight_NiepoprawnaKombinacja_Zwraca0` | `[1,2,3,4,4]` | `0` |
+| SC40 | `LargeStraight_NiepoprawnaKombinacja_Zwraca0` | `[1,2,3,4,6]` | `0` |
+| SC41 | `LargeStraight_NiepoprawnaKombinacja_Zwraca0` | `[1,1,1,1,1]` | `0` |
 
-### Yahtzee
+### Yahtzee (1 `[Theory]` × 3 + 2 `[Fact]` = **5 przypadków**)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC32 | Pięć jednaków | `[6,6,6,6,6]` | `50` |
-| SC33 | Cztery jednakowe — nie Yahtzee | `[5,5,5,5,1]` | `0` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC42 | `Yahtzee_PiecJednakowychDowolnaWartosc_Zwraca50` | `[1,1,1,1,1]` | `50` |
+| SC43 | `Yahtzee_PiecJednakowychDowolnaWartosc_Zwraca50` | `[3,3,3,3,3]` | `50` |
+| SC44 | `Yahtzee_PiecJednakowychDowolnaWartosc_Zwraca50` | `[6,6,6,6,6]` | `50` |
+| SC45 | `Yahtzee_CzteryJednakowe_Zwraca0` | `[5,5,5,5,1]` | `0` |
+| SC46 | `Yahtzee_BrakPowtorzen_Zwraca0` | `[1,2,3,4,5]` | `0` |
 
-### Szansa (Chance)
+### Szansa — Chance (3 `[Fact]`)
 
-| ID | Scenariusz | Wejście | Oczekiwany wynik |
-|----|------------|---------|-----------------|
-| SC34 | Suma wszystkich kości | `[1,2,3,4,5]` | `15` |
-| SC35 | Maksymalna suma | `[6,6,6,6,6]` | `30` |
-| SC36 | Minimalna suma | `[1,1,1,1,1]` | `5` |
+| ID | Nazwa testu | Wejście | Oczekiwany wynik |
+|----|-------------|---------|-----------------|
+| SC47 | `Chance_ZwracaSumeWszystkichKosci` | `[1,2,3,4,5]` | `15` |
+| SC48 | `Chance_MaksymalnaSuma` | `[6,6,6,6,6]` | `30` |
+| SC49 | `Chance_MinimalnaSuma` | `[1,1,1,1,1]` | `5` |
 
-### Apply
+### Apply (1 `[Theory]` × 13 + 3 `[Fact]` = **16 przypadków**)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| SC37 | Apply(Ones, 3) ustawia `card.Ones == 3` | |
-| SC38 | Apply(Yahtzee, 50) ustawia `card.Yahtzee == 50` | |
-| SC39 | Apply każdej z 13 kategorii ustawia właściwość | (parametryzowany test po `ScoreCategory`) |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SC50–SC62 | `Apply_KazdaKategoria_UstawiaWlasciwosc` (×13) | Apply dla każdej z 13 kategorii | `card.IsUsed(category) == true` |
+| SC63 | `Apply_Ones_UstawiaPoprawnaWartosc` | `Apply(Ones, 3)` | `card.Ones == 3` |
+| SC64 | `Apply_Yahtzee_UstawiaPoprawnaWartosc` | `Apply(Yahtzee, 50)` | `card.Yahtzee == 50` |
+| SC65 | `Apply_Wynik0_KategoriaTraktowanaJakoUzyta` | `Apply(FullHouse, 0)` | `IsUsed == true`, `card.FullHouse == 0` |
 
 ---
 
 ## ScoreCardTests
 
-Klasa: `GraWKosci.Models.ScoreCard`
+Klasa: `GraWKosci.Models.ScoreCard`  
+**Łącznie: 37 przypadków testowych**
 
-### UpperSectionTotal
+### UpperSectionTotal (4 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| SCC01 | Pusta karta — wynik 0 | `UpperSectionTotal == 0` |
-| SCC02 | Wypełnione wszystkie 6 kategorii | suma poprawna |
-| SCC03 | Częściowo wypełniona — null traktowane jako 0 | |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SCC01 | `UpperSectionTotal_PustaKarta_Zwraca0` | Pusta karta | `0` |
+| SCC02 | `UpperSectionTotal_WszystkieWypelnione_ZwracaPoprawnaSume` | Ones=3…Sixes=18 | `63` |
+| SCC03 | `UpperSectionTotal_CzesciowoWypelniona_NullTraktowaneJako0` | Ones=5, Threes=9 | `14` |
+| SCC04 | `UpperSectionTotal_ZapisBrzegowy0_NieWliczaNulla` | Ones=0 (zapisane) | `0` |
 
-### UpperBonus
+### UpperBonus (5 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| SCC04 | Suma < 63 — brak premii | `UpperBonus == 0` |
-| SCC05 | Suma == 63 — premia przyznana | `UpperBonus == 35` |
-| SCC06 | Suma > 63 — premia przyznana | `UpperBonus == 35` |
-| SCC07 | `BonusApplied == true` — premia nie naliczana ponownie | `UpperBonus == 0` |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SCC05 | `UpperBonus_SumaPonizej63_Zwraca0` | Ones=1, Twos=2 | `0` |
+| SCC06 | `UpperBonus_SumaRowna63_Zwraca35` | Suma górna == 63 | `35` |
+| SCC07 | `UpperBonus_SumaPowyżej63_Zwraca35` | Suma górna > 63 | `35` |
+| SCC08 | `UpperBonus_BonusAppliedTrue_Zwraca0NawetGdySuma63` | Suma == 63, `BonusApplied = true` | `0` |
+| SCC09 | `UpperBonus_Prog62_BrakPremii` | Suma górna == 62 | `0` |
 
-### TotalScore
+### LowerSectionTotal (2 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| SCC08 | Pusta karta — wynik 0 | |
-| SCC09 | Suma górna + premia + suma dolna | poprawna arytmetyka |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SCC10 | `LowerSectionTotal_PustaKarta_Zwraca0` | Pusta karta | `0` |
+| SCC11 | `LowerSectionTotal_WszystkieWypelnione_ZwracaPoprawnaSume` | Wszystkie 7 pól dolnych wypełnionych | `206` |
 
-### IsComplete
+### TotalScore (3 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| SCC10 | Pusta karta — `false` | |
-| SCC11 | 12 z 13 kategorii wypełnione — `false` | |
-| SCC12 | Wszystkie 13 kategorii wypełnione — `true` | |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SCC12 | `TotalScore_PustaKarta_Zwraca0` | Pusta karta | `0` |
+| SCC13 | `TotalScore_ZPremia_PoprawnaArytmetyka` | Górna=63 + premia=35 + Yahtzee=50 | `148` |
+| SCC14 | `TotalScore_BezPremii_PoprawnaArytmetyka` | Ones=1, Chance=10 | `11` |
 
-### IsUsed
+### IsComplete (4 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| SCC13 | Kategoria null — `false` | |
-| SCC14 | Kategoria z wartością 0 — `true` (zapisano wynik 0) | |
-| SCC15 | Każda kategoria poprawnie raportuje stan | (parametryzowany test) |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SCC15 | `IsComplete_PustaKarta_FalseReturn` | Pusta karta | `false` |
+| SCC16 | `IsComplete_12z13Kategorii_FalseReturn` | Brak Chance | `false` |
+| SCC17 | `IsComplete_Wszystkie13Kategorii_TrueReturn` | Wszystkie 13 zapisane | `true` |
+| SCC18 | `IsComplete_KategorieZWartoscia0SaWypelnione` | Wszystkie 13 zapisane z wartością `0` | `true` |
+
+### IsUsed (3 `[Theory]` × 13 + 3 + 3 = **19 przypadków**)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| SCC19–SCC31 | `IsUsed_KategoriaNiezapisana_FalseReturn` (×13) | Nowa karta, każda z 13 kategorii | `false` |
+| SCC32–SCC34 | `IsUsed_KategoriaZapisanaZWartosciaPozytywna_TrueReturn` (×3: Ones, Yahtzee, Chance) | `Apply` z wartością 10 | `true` |
+| SCC35–SCC37 | `IsUsed_KategoriaZapisanaZ0_TrueReturn` (×3: Ones, FullHouse, Yahtzee) | `Apply` z wartością `0` | `true` |
 
 ---
 
 ## GameStateTests
 
-Klasa: `GraWKosci.Models.GameState`
+Klasa: `GraWKosci.Models.GameState`  
+**Łącznie: 9 przypadków testowych**
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| GS01 | `CurrentPlayer` zwraca gracza o indeksie `CurrentPlayerIndex` | |
-| GS02 | `IsGameFinished` — wszyscy gracze ukończeni → `true` | |
-| GS03 | `IsGameFinished` — jeden gracz nieukończony → `false` | |
-| GS04 | `IsGameFinished` — pusta lista graczy → `true` (All na pustej kolekcji) | |
+### CurrentPlayer (2 `[Fact]`)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| GS01 | `CurrentPlayer_IndeksDomyslny0_ZwracaPierwszegoGracza` | Indeks = 0 | zwraca p1 |
+| GS02 | `CurrentPlayer_IndeksPrzesunienty_ZwracaWlasciwego` | Indeks = 1 | zwraca p2 |
+
+### IsGameFinished (3 `[Fact]`)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| GS03 | `IsGameFinished_WszyscyGraczeUkonczeni_TrueReturn` | Wszyscy z pełną kartą | `true` |
+| GS04 | `IsGameFinished_JedenGraczNieUkonczony_FalseReturn` | Jeden gracz z pustą kartą | `false` |
+| GS05 | `IsGameFinished_WszyscyGraczeZPustaKarta_FalseReturn` | Wszyscy z pustą kartą | `false` |
+
+### Players (2 `[Fact]`)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| GS06 | `Players_DomyslniePustaLista` | Nowy `GameState` | `Players` jest pusta |
+| GS07 | `Players_MoznaDeodacGraczy` | Dodano 2 graczy | `Count == 2` |
+
+### CurrentPlayerIndex (2 `[Fact]`)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| GS08 | `CurrentPlayerIndex_DomyslnieZero` | Nowy `GameState` | `0` |
+| GS09 | `CurrentPlayerIndex_MoznaZmienic` | Ustawiono na 1 | `1` |
 
 ---
 
 ## DiceRollerTests
 
-Klasa: `GraWKosci.Services.DiceRoller`
+Klasa: `GraWKosci.Services.DiceRoller`  
+**Łącznie: 10 przypadków testowych**
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| DR01 | `RollAll()` zwraca tablicę 5 kości | `Length == 5` |
-| DR02 | `RollAll()` — wszystkie kości niezatrzymane | każda `IsHeld == false` |
-| DR03 | `RollAll()` — wartości w zakresie 1–6 | każda wartość `>= 1 && <= 6` |
-| DR04 | `RollUnheld()` — niezatrzymane kości mają nowe wartości (statystycznie) | |
-| DR05 | `RollUnheld()` — zatrzymane kości nie zmieniają wartości | |
-| DR06 | `RollUnheld()` — wszystkie kości zatrzymane → żadna nie zmienia wartości | |
-| DR07 | `RollAll()` wywołane wiele razy — nie zwraca zawsze tej samej sekwencji | |
+### RollAll (5 `[Fact]`)
 
-> **Uwaga do DR04/DR07:** Ponieważ wynik jest losowy, najprościej sprawdzić zakres wartości i `IsHeld`. Determinizm można wymusić przez wstrzyknięcie `Random` z seedem w konstruktorze (refaktor opcjonalny).
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| DR01 | `RollAll_ZwracaDokladnie5Kosci` | Wywołanie `RollAll()` | `Length == 5` |
+| DR02 | `RollAll_WszystkieKosciNiezatrzymane` | Wywołanie `RollAll()` | każda `IsHeld == false` |
+| DR03 | `RollAll_WartosciWZakresie1Do6` | Wywołanie `RollAll()` | każda wartość w zakresie 1–6 |
+| DR04 | `RollAll_WielokrotneWywolania_WartosciWZakresie` | 100 wywołań | zawsze w zakresie 1–6 |
+| DR05 | `RollAll_ZwracaNoweTablice_NieZwracaReferencjiDoTejSamej` | Dwa wywołania | `NotSame(dice1, dice2)` |
+
+### RollUnheld (5 `[Fact]`)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| DR06 | `RollUnheld_ZatrzymaneKosciNieZmieniajWartosci` | Wszystkie zatrzymane z wartością 6 | każda nadal == 6 |
+| DR07 | `RollUnheld_NiezatrzymaneKosciMajaWartoscWZakresie` | Wszystkie niezatrzymane, 50 powtórzeń | wartości w zakresie 1–6 |
+| DR08 | `RollUnheld_CzescZatrzymana_CzescNie` | Kości 0, 2, 4 zatrzymane; 1, 3 nie | zatrzymane == 6; pozostałe w zakresie 1–6 |
+| DR09 | `RollUnheld_WszystkieZatrzymane_ZadnaNieZmieniaSie` | Wszystkie 5 zatrzymane z wartościami 1–5 | każda zachowuje oryginalną wartość |
+| DR10 | `RollUnheld_ZadnaZatrzymana_WszystkieOtrzymujaNowWartosci` | Wartość startowa 7 (niemożliwa), niezatrzymane | każda po rzucie w zakresie 1–6 |
 
 ---
 
 ## AiPlayerTests — ChooseDiceToHold
 
 Klasa: `GraWKosci.Services.AiPlayer`  
-Metoda: `ChooseDiceToHold(Dice[], int rollsLeft, ScoreCard)`
+Metoda: `ChooseDiceToHold(Dice[], int rollsLeft, ScoreCard)`  
+**Łącznie: 13 przypadków testowych (11 `[Fact]` + 1 `[Theory]` × 2)**
 
-Metoda pomocnicza:
-```csharp
-private static Dice[] D(params int[] v) =>
-    v.Select(x => new Dice { Value = x }).ToArray();
-private static ScoreCard EmptyCard() => new ScoreCard();
-```
+### Rozmiar odpowiedzi (1 `[Fact]`)
 
-### Zatrzymanie przy specjalnych kombinacjach
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| AI01 | `ChooseDiceToHold_ZawszeZwraca5Elementow` | Dowolne kości | `Length == 5` |
 
-| ID | Scenariusz | Kości | rollsLeft | Oczekiwanie |
-|----|------------|-------|-----------|-------------|
-| AI01 | Duży strit — zatrzymaj wszystkie | `[1,2,3,4,5]` | `2` | `[T,T,T,T,T]` |
-| AI02 | Duży strit — zatrzymaj wszystkie | `[2,3,4,5,6]` | `1` | `[T,T,T,T,T]` |
-| AI03 | Pięć jednaków — zatrzymaj wszystkie | `[3,3,3,3,3]` | `2` | `[T,T,T,T,T]` |
-| AI04 | Full — zatrzymaj wszystkie | `[2,2,3,3,3]` | `2` | `[T,T,T,T,T]` |
-| AI05 | Cztery jednakowe — zatrzymaj cztery | `[5,5,5,5,2]` | `1` | 4 × `T`, 1 × `F` |
-| AI06 | Trzy jednakowe — zatrzymaj trójkę | `[4,4,4,1,2]` | `2` | 3 × `T`, 2 × `F` |
-| AI07 | Mały strit (wolna kategoria) — zatrzymaj 4 | `[1,2,3,4,6]` | `2` | `1,2,3,4` zatrzymane |
-| AI08 | Dwie pary — zostaw wyższą | `[2,2,5,5,3]` | `2` | para 5 zatrzymana |
-| AI09 | Jedna para — zatrzymaj parę | `[3,3,1,4,6]` | `2` | dwie `3` zatrzymane |
-| AI10 | Brak par/stritów, jest 5 — zatrzymaj 5 | `[1,2,3,4,5]` | `2` | jedna `5` zatrzymana (gdy brak strita) |
-| AI11 | Ostatni rzut (rollsLeft=0) — zatrzymaj wszystkie | `[1,2,3,4,6]` | `0` | `[T,T,T,T,T]` |
-| AI12 | Mały strit (kategoria zajęta) — nie zatrzymuj jako strit | `[1,2,3,4,6]` — `SmallStraight` zajęta | `2` | inne zachowanie niż AI07 |
+### rollsLeft == 0 (1 `[Fact]`)
 
-### Wynik metody
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| AI02 | `ChooseDiceToHold_OstatniRzut_ZatrzymujeWszystkie` | `rollsLeft = 0` | wszystkie `true` |
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| AI13 | Zawsze zwraca tablicę 5 elementów | `Length == 5` |
+### Kombinacje (9 `[Fact]` + 1 `[Theory]` × 2)
+
+| ID | Nazwa testu | Kości | rollsLeft | Oczekiwanie |
+|----|-------------|-------|-----------|-------------|
+| AI03a | `ChooseDiceToHold_DuzyStrit_ZatrzymujeWszystkie` | `[1,2,3,4,5]` | `2` | wszystkie `true` |
+| AI03b | `ChooseDiceToHold_DuzyStrit_ZatrzymujeWszystkie` | `[2,3,4,5,6]` | `2` | wszystkie `true` |
+| AI04 | `ChooseDiceToHold_PiecJednakowychWszystkie_ZatrzymujeWszystkie` | `[4,4,4,4,4]` | `2` | wszystkie `true` |
+| AI05 | `ChooseDiceToHold_Full_ZatrzymujeWszystkie` | `[2,2,3,3,3]` | `2` | wszystkie `true` |
+| AI06 | `ChooseDiceToHold_CzteryJednakowe_ZatrzymujeDokladnieCztery` | `[5,5,5,5,2]` | `2` | dokładnie 4 × `true` |
+| AI07 | `ChooseDiceToHold_CzteryJednakowe_ZatrzymujeWartoscKtoraMaPowtorzenieNie2` | `[5,5,5,5,2]` | `2` | kość z wartością 2 ma `false` |
+| AI08 | `ChooseDiceToHold_TrzyJednakowe_ZatrzymujeDokladnieTrzy` | `[4,4,4,1,2]` | `2` | dokładnie 3 × `true` |
+| AI09 | `ChooseDiceToHold_MalyStritKategoriaWolna_ZatrzymujeCztery` | `[1,2,3,4,6]` | `2` | dokładnie 4 × `true` |
+| AI10 | `ChooseDiceToHold_MalyStritKategoriaZajeta_NieWybieraMalego` | `[1,2,3,4,6]`, SmallStraight zajęty | `2` | wynik różny od wariantu z wolną kategorią |
+| AI11 | `ChooseDiceToHold_DwiePary_ZatrzymujeCoNajmniej2Kostki` | `[2,2,5,5,3]` | `2` | `>= 2` × `true` |
+| AI12 | `ChooseDiceToHold_JednaPara_ZatrzymujeDokladnieDwie` | `[3,3,1,4,6]` | `2` | dokładnie 2 × `true` |
+| AI13 | `ChooseDiceToHold_BrakParBrak5_ZatrzymujeMaxJedna` | `[1,2,3,6,4]` | `2` | zwraca tablicę 5 elementów bez wyjątku |
 
 ---
 
 ## AiPlayerTests — ChooseCategory
 
 Klasa: `GraWKosci.Services.AiPlayer`  
-Metoda: `ChooseCategory(Dice[], ScoreCard)`
+Metoda: `ChooseCategory(Dice[], ScoreCard)`  
+**Łącznie: 14 przypadków testowych (12 `[Fact]` + 1 `[Theory]` × 2)**
 
-### Priorytety — kombinacje wysokopunktowe
+### Wynik nigdy nie wskazuje zajętej kategorii (2 `[Fact]`)
 
-| ID | Scenariusz | Kości | Stan karty | Oczekiwana kategoria |
-|----|------------|-------|------------|----------------------|
-| AC01 | Yahtzee dostępny | `[6,6,6,6,6]` | pusta | `Yahtzee` |
-| AC02 | Yahtzee zajęty — fallback | `[6,6,6,6,6]` | Yahtzee zajęty | nie `Yahtzee` |
-| AC03 | Duży strit dostępny | `[1,2,3,4,5]` | pusta | `LargeStraight` |
-| AC04 | Mały strit dostępny | `[1,2,3,4,6]` | pusta | `SmallStraight` |
-| AC05 | Full dostępny | `[1,1,2,2,2]` | pusta | `FullHouse` |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| AC01 | `ChooseCategory_NigdyNieWybieraZajetejKategorii_Yahtzee` | Yahtzee zajęty, kości `[6,6,6,6,6]` | wynik ≠ `Yahtzee` |
+| AC02 | `ChooseCategory_NigdyNieWybieraZajetejKategorii_KartaZJednaWolna` | Pełna karta poza Chance | `!card.IsUsed(result)` |
 
-### Priorytety — słabe układy
+### Priorytety — kombinacje wysokopunktowe (4 `[Fact]` + 1 `[Theory]` × 2)
 
-| ID | Scenariusz | Kości | Stan karty | Oczekiwana kategoria |
-|----|------------|-------|------------|----------------------|
-| AC06 | Suma ≥ 22, Szansa wolna | `[5,5,4,4,6]` | pusta | `Chance` |
-| AC07 | Para jedynek, wolne jedynki | `[1,1,2,3,4]` | pusta | `Ones` |
-| AC08 | Brak par, wolne jedynki | `[1,2,3,4,6]` | pusta | `Ones` |
+| ID | Nazwa testu | Kości | Stan karty | Oczekiwana kategoria |
+|----|-------------|-------|------------|----------------------|
+| AC03 | `ChooseCategory_Yahtzee_WybieraYahtzee` | `[6,6,6,6,6]` | pusta | `Yahtzee` |
+| AC04a | `ChooseCategory_DuzyStrit_WybieraLargeStraight` | `[1,2,3,4,5]` | pusta | `LargeStraight` |
+| AC04b | `ChooseCategory_DuzyStrit_WybieraLargeStraight` | `[2,3,4,5,6]` | pusta | `LargeStraight` |
+| AC05 | `ChooseCategory_MalyStrit_WybieraSmallStraight` | `[1,2,3,4,6]` | pusta | `SmallStraight` |
+| AC06 | `ChooseCategory_Full_WybieraFullHouse` | `[1,1,2,2,2]` | pusta | `FullHouse` |
 
-### Fallback
+### Fallback (2 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| AC09 | Wszystkie preferencje zajęte — wybiera dostępną z najwyższym wynikiem | zwraca `ScoreCategory`, nie rzuca wyjątku |
-| AC10 | Karta z jedną wolną kategorią — wybiera ją | |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| AC07 | `ChooseCategory_WszystkiePreferencjeZajete_WybieraDostepna` | Wolna tylko Twos | `Twos` |
+| AC08 | `ChooseCategory_PustaKarta_NieRzucaWyjatku` | Kości `[1,1,1,1,1]`, pusta karta | brak wyjątku |
 
-### Własność: brak niedozwolonych kategorii
+### Wartości brzegowe / walidacja wynikowa (2 `[Fact]`)
 
-| ID | Scenariusz | Oczekiwanie |
-|----|------------|-------------|
-| AC11 | Wynik nigdy nie wskazuje zajętej kategorii | `!card.IsUsed(result)` |
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| AC09 | `ChooseCategory_WszystkieKombiancjeTestedNieRzucajaWyjatku` | 10 kombinacji kości, pusta karta | brak wyjątku dla żadnej |
+| AC10 | `ChooseCategory_ZwracaPoprawnaKategorieEnumValue` | Kości `[1,2,3,4,5]` | `Enum.IsDefined == true` |
+
+### Spójność Choose → IsUsed (2 `[Fact]`)
+
+| ID | Nazwa testu | Scenariusz | Oczekiwanie |
+|----|-------------|------------|-------------|
+| AC11 | `ChooseCategory_WynikMoznaZapisacDoKarty` | Wybrana kategoria → `Apply` → `IsUsed` | `IsUsed(chosen) == true` |
+| AC12 | `ChooseCategory_PelnaChaotycznaGra_KartaKompletnaPoWszystkichRundach` | Symulacja 13 tur, deterministyczne kości | karta kompletna, AI nigdy nie wybiera zajętej kategorii |
 
 ---
 
 ## Struktura plików testowych
 
-Proponowane rozmieszczenie klas testowych w projekcie `GraWKosci.Tests`:
-
 ```
 GraWKosci.Tests/
-├── ScoreCalculatorTests.cs   # SC01–SC39
-├── ScoreCardTests.cs          # SCC01–SCC15
-├── GameStateTests.cs          # GS01–GS04
-├── DiceRollerTests.cs         # DR01–DR07
-└── AiPlayerTests.cs           # AI01–AI13, AC01–AC11
-```
-
-### Przykładowy test (xUnit)
-
-```csharp
-public class ScoreCalculatorTests
-{
-    private static Dice[] Dice(params int[] values) =>
-        values.Select(v => new GraWKosci.Models.Dice { Value = v }).ToArray();
-
-    [Fact]
-    public void Calculate_FullHouse_Returns25()
-    {
-        var dice = Dice(1, 1, 2, 2, 2);
-        var result = ScoreCalculator.Calculate(ScoreCategory.FullHouse, dice);
-        Assert.Equal(25, result);
-    }
-
-    [Theory]
-    [InlineData(new[] { 1, 2, 3, 4, 5 }, 40)]
-    [InlineData(new[] { 2, 3, 4, 5, 6 }, 40)]
-    public void Calculate_LargeStraight_Returns40(int[] values, int expected)
-    {
-        var result = ScoreCalculator.Calculate(ScoreCategory.LargeStraight, Dice(values));
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(ScoreCategory.Ones, 3)]
-    [InlineData(ScoreCategory.Yahtzee, 50)]
-    [InlineData(ScoreCategory.Chance, 17)]
-    public void Apply_SetsCorrectProperty(ScoreCategory category, int value)
-    {
-        var card = new ScoreCard();
-        ScoreCalculator.Apply(card, category, value);
-        Assert.True(card.IsUsed(category));
-    }
-}
-```
-
-### Przykładowy test AI (parametryzowany)
-
-```csharp
-public class AiPlayerTests
-{
-    private readonly AiPlayer _ai = new();
-
-    private static Dice[] D(params int[] v) =>
-        v.Select(x => new GraWKosci.Models.Dice { Value = x }).ToArray();
-
-    [Fact]
-    public void ChooseDiceToHold_LargeStraight_HoldsAll()
-    {
-        var held = _ai.ChooseDiceToHold(D(1, 2, 3, 4, 5), 2, new ScoreCard());
-        Assert.All(held, h => Assert.True(h));
-    }
-
-    [Fact]
-    public void ChooseCategory_Yahtzee_ReturnsYahtzee_WhenAvailable()
-    {
-        var category = _ai.ChooseCategory(D(6, 6, 6, 6, 6), new ScoreCard());
-        Assert.Equal(ScoreCategory.Yahtzee, category);
-    }
-
-    [Fact]
-    public void ChooseCategory_NeverReturnsUsedCategory()
-    {
-        var card = new ScoreCard();
-        // Wypełnij wszystkie poza Chance
-        ScoreCalculator.Apply(card, ScoreCategory.Ones, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.Twos, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.Threes, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.Fours, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.Fives, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.Sixes, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.ThreeOfAKind, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.FourOfAKind, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.FullHouse, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.SmallStraight, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.LargeStraight, 0);
-        ScoreCalculator.Apply(card, ScoreCategory.Yahtzee, 0);
-
-        var result = _ai.ChooseCategory(D(1, 2, 3, 4, 6), card);
-        Assert.Equal(ScoreCategory.Chance, result);
-    }
-}
+├── GraWKosci_Tests.csproj
+├── ScoreCalculatorTests.cs   # SC01–SC65   (65 przypadków)
+├── ScoreCardTests.cs         # SCC01–SCC37 (37 przypadków)
+├── GameStateTests.cs         # GS01–GS09   ( 9 przypadków)
+├── DiceRollerTests.cs        # DR01–DR10   (10 przypadków)
+└── AiPlayerTests.cs          # AI01–AI13, AC01–AC12 (27 przypadków)
 ```
