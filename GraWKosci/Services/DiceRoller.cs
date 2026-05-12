@@ -6,16 +6,21 @@ public class DiceRoller
 {
     private readonly Random _random = new();
 
-    public void Roll(Dice[] dices)
+    public Dice[] RollAll()
     {
-        foreach (var dice in dices)
-        {
-            if (dice.IsHeld)
-            {
-                continue;
-            }
+        return Enumerable.Range(0, 5)
+            .Select(_ => new Dice { Value = Roll(), IsHeld = false })
+            .ToArray();
+    }
 
-            dice.Value = _random.Next(1, 7);
+    public void RollUnheld(Dice[] dice)
+    {
+        foreach (var d in dice)
+        {
+            if (!d.IsHeld)
+                d.Value = Roll();
         }
     }
+
+    private int Roll() => _random.Next(1, 7);
 }

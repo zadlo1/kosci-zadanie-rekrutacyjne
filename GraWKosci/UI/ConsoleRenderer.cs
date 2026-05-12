@@ -12,7 +12,6 @@ public static class ConsoleRenderer
         for (var i = 0; i < dices.Length; i++)
         {
             var held = dices[i].IsHeld ? "*" : " ";
-
             Console.Write($"[{i + 1}:{dices[i].Value}{held}] ");
         }
 
@@ -22,19 +21,17 @@ public static class ConsoleRenderer
 
     public static void RenderScoreCard(Player player, Dice[] dices)
     {
-        Console.WriteLine("=== Dostępne Kategorie ===");
+        Console.WriteLine("\n=== PODPOWIEDZI (MOŻLIWE WYNIKI) ===");
 
-        var available = Enum
-            .GetValues<ScoreCategory>()
-            .Where(x => !player.ScoreCard.IsUsed(x))
-            .ToList();
+        var categories = Enum.GetValues<ScoreCategory>();
 
-        for (var i = 0; i < available.Count; i++)
+        foreach (var category in categories)
         {
-            var category = available[i];
-            var score = ScoreCalculator.Calculate(category, dices);
+            if (player.ScoreCard.IsUsed(category))
+                continue;
 
-            Console.WriteLine($"{i + 1}. {category} -> {score} pkt");
+            var score = ScoreCalculator.Calculate(category, dices);
+            Console.WriteLine($"{category} -> {score} pkt");
         }
 
         Console.WriteLine();

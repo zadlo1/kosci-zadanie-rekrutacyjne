@@ -5,160 +5,102 @@ namespace GraWKosci.Services;
 
 public class GameEngine
 {
-    private readonly DiceRoller _diceRoller = new();
+    private readonly GameState _state;
+    private readonly DiceRoller _roller;
+    private readonly bool _showHints;
 
-    private readonly List<Player> _players = [];
-
-    public void Start()
+    public GameEngine(GameState state, DiceRoller roller, bool showHints)
     {
-        SetupPlayers();
-        
-        while (!_players.All(x => x.ScoreCard.IsComplete))
-        {
-            foreach (var player in _players)
-            {
-                if (player.ScoreCard.IsComplete)
-                {
-                    continue;
-                }
+        _state = state;
+        _roller = roller;
+        _showHints = showHints;
+    }
 
+    public void Run()
+    {
+        while (!_state.IsGameFinished)
+        {
+            var player = _state.CurrentPlayer;
+
+            if (!player.ScoreCard.IsComplete)
                 PlayTurn(player);
-            }
+
+            NextPlayer();
         }
 
         ShowResults();
     }
 
-    private void SetupPlayers()
-    {
-        Console.Write("Podaj liczbę graczy (2-4): ");
-
-        var playerCount = int.Parse(Console.ReadLine()!);
-        
-        for (var i = 1; i <= playerCount; i++)
-        {
-            Console.Write($"Nazwa gracza {i}: ");
-
-            var name = Console.ReadLine()!;
-
-            _players.Add(new Player(name));
-        }
-    }
-
     private void PlayTurn(Player player)
     {
-        Console.Clear();
+        var dice = _roller.RollAll();
+        int rollsLeft = 2;
 
-        Console.WriteLine($"=== Tura gracza: {player.Name} ===");
-
-        var dices = CreateDices();
-
-        for (var roll = 1; roll <= 3; roll++)
+        while (true)
         {
-            Console.WriteLine();
-            Console.WriteLine($"Rzut {roll}/3");
-            
-            _diceRoller.Roll(dices);
+            Console.WriteLine($"Rzut: {string.Join(" ", dice.Select(d => d.Value))}");
 
-            ConsoleRenderer.RenderDice(dices);
-
-            if (roll < 3)
+            if (_showHints && rollsLeft == 0)
             {
-                HandleHoldInput(dices);
+                ConsoleRenderer.RenderScoreCard(player, dice);
             }
+
+            if (rollsLeft == 0)
+                break;
+
+            Console.WriteLine("Zatrzymać kości? (np. 1 3 5):");
+            var input = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                var keep = input.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(int.Parse)
+                                .ToHashSet();
+
+                for (int i = 0; i < dice.Length; i++)
+                    dice[i].IsHeld = keep.Contains(i + 1);
+            }
+
+            _roller.RollUnheld(dice);
+            rollsLeft--;
         }
 
-        ChooseCategory(player, dices);
-
-        Console.WriteLine();
-        Console.WriteLine("Naciśnij dowolny klawisz...");
-        Console.ReadKey();
+        ChooseCategory(player, dice);
     }
 
-    private Dice[] CreateDices()
+    private void ChooseCategory(Player player, Dice[] dice)
     {
-        return
-        [
-            new Dice(),
-            new Dice(),
-            new Dice(),
-            new Dice(),
-            new Dice()
-        ];
-    }
-
-    private void HandleHoldInput(Dice[] dices)
-    {
-        Console.WriteLine("Które kości zatrzymać? (np. 1 3 5)");
-        Console.Write("> ");
+        Console.WriteLine("\nWybierz kategorię:");
 
         var input = Console.ReadLine();
 
-        foreach (var dice in dices)
+        if (!Enum.TryParse(input, out ScoreCategory category))
         {
-            dice.IsHeld = false;
-        }
-
-        if (string.IsNullOrWhiteSpace(input))
-        {
+            Console.WriteLine("Błędna kategoria - pomijam turę.");
             return;
         }
-        
-        var indexes = input
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Select(int.Parse)
-            .ToList();
 
-        foreach (var index in indexes)
-        {
-            dices[index - 1].IsHeld = true;
-        }
+        int score = ScoreCalculator.Calculate(category, dice);
+        ScoreCalculator.Apply(player.ScoreCard, category, score);
+
+        Console.WriteLine($"Dodano: {score} pkt\n");
     }
 
-    private void ChooseCategory(Player player, Dice[] dices)
+    private void NextPlayer()
     {
-        Console.WriteLine();
-
-        ConsoleRenderer.RenderScoreCard(player, dices);
-
-        var available = Enum
-            .GetValues<ScoreCategory>()
-            .Where(x => !player.ScoreCard.IsUsed(x))
-            .ToList();
-            
-        Console.Write("Wybierz kategorię: ");
-
-        var selectedIndex = int.Parse(Console.ReadLine()!) - 1;
-
-        var category = available[selectedIndex];
-
-        var score = ScoreCalculator.Calculate(category, dices);
-
-        player.ScoreCard.SetScore(category, score);
-
-        Console.WriteLine();
-        Console.WriteLine($"Zapisano {score} pkt do kategorii {category}");
+        _state.CurrentPlayerIndex =
+            (_state.CurrentPlayerIndex + 1) % _state.Players.Count;
     }
 
     private void ShowResults()
     {
-        Console.Clear();
+        Console.WriteLine("\n=== WYNIKI ===");
 
-        Console.WriteLine("=== KONIEC GRY ===");
-        Console.WriteLine();
+        var ranking = _state.Players
+            .OrderByDescending(p => p.ScoreCard.TotalScore);
 
-        var ranking = _players
-            .OrderByDescending(x => x.ScoreCard.TotalScore)
-            .ToList();
-            
-        for (var i = 0; i < ranking.Count; i++)
-        {
-            var player = ranking[i];
-
-            Console.WriteLine(
-                $"{i + 1}. {player.Name} - {player.ScoreCard.TotalScore} pkt");
-        }
-
-        Console.WriteLine();
+        int i = 1;
+        foreach (var p in ranking)
+            Console.WriteLine($"{i++}. {p.Name} - {p.ScoreCard.TotalScore}");
     }
 }

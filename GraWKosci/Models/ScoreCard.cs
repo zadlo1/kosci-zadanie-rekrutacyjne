@@ -2,48 +2,83 @@ namespace GraWKosci.Models;
 
 public class ScoreCard
 {
-    private readonly Dictionary<ScoreCategory, int?> _scores = new();
+    // Tabelka 1
+    public int? Ones { get; set; }
+    public int? Twos { get; set; }
+    public int? Threes { get; set; }
+    public int? Fours { get; set; }
+    public int? Fives { get; set; }
+    public int? Sixes { get; set; }
 
-    public ScoreCard()
-    {
-        foreach (ScoreCategory category in Enum.GetValues<ScoreCategory>())
-        {
-            _scores[category] = null;
-        }
-    }
+    // Tabelka 2
+    public int? ThreeOfAKind { get; set; }
+    public int? FourOfAKind { get; set; }
+    public int? FullHouse { get; set; }
+    public int? SmallStraight { get; set; }
+    public int? LargeStraight { get; set; }
+    public int? Yahtzee { get; set; }
+    public int? Chance { get; set; }
 
-    public bool IsUsed(ScoreCategory category)
-    {
-        return _scores[category].HasValue;
-    }
-
-    public void SetScore(ScoreCategory category, int score)
-    {
-        _scores[category] = score;
- }
-
-    public int? GetScore(ScoreCategory category)
-    {
-        return _scores[category];
-    }
-
-    public Dictionary<ScoreCategory, int?> GetAllScores()
-    {
-        return _scores;
-    }
+    public bool BonusApplied { get; set; }
 
     public int UpperSectionTotal =>
-        (_scores[ScoreCategory.Ones] ?? 0) +
-        (_scores[ScoreCategory.Twos] ?? 0) +
-        (_scores[ScoreCategory.Threes] ?? 0) +
-        (_scores[ScoreCategory.Fours] ?? 0) +
-        (_scores[ScoreCategory.Fives] ?? 0) +
-        (_scores[ScoreCategory.Sixes] ?? 0);
+        (Ones ?? 0) +
+        (Twos ?? 0) +
+        (Threes ?? 0) +
+        (Fours ?? 0) +
+        (Fives ?? 0) +
+        (Sixes ?? 0);
 
-    public int UpperBonus => UpperSectionTotal >= 63 ? 35 : 0;
+    public int UpperBonus =>
+        (!BonusApplied && UpperSectionTotal >= 63) ? 35 : 0;
+
+    public int LowerSectionTotal =>
+        (ThreeOfAKind ?? 0) +
+        (FourOfAKind ?? 0) +
+        (FullHouse ?? 0) +
+        (SmallStraight ?? 0) +
+        (LargeStraight ?? 0) +
+        (Yahtzee ?? 0) +
+        (Chance ?? 0);
 
     public int TotalScore =>
-        _scores.Values.Where(x => x.HasValue).Sum(x => x!.Value) + UpperBonus;
+        UpperSectionTotal + UpperBonus + LowerSectionTotal;
 
-    public bool IsComplete => _scores.Values.All(x => x.HasValue);
+    public bool IsComplete =>
+        Ones.HasValue &&
+        Twos.HasValue &&
+        Threes.HasValue &&
+        Fours.HasValue &&
+        Fives.HasValue &&
+        Sixes.HasValue &&
+        ThreeOfAKind.HasValue &&
+        FourOfAKind.HasValue &&
+        FullHouse.HasValue &&
+        SmallStraight.HasValue &&
+        LargeStraight.HasValue &&
+        Yahtzee.HasValue &&
+        Chance.HasValue;
+    
+    public bool IsUsed(ScoreCategory category)
+    {
+        return category switch
+        {
+            ScoreCategory.Ones => Ones.HasValue,
+            ScoreCategory.Twos => Twos.HasValue,
+            ScoreCategory.Threes => Threes.HasValue,
+            ScoreCategory.Fours => Fours.HasValue,
+            ScoreCategory.Fives => Fives.HasValue,
+            ScoreCategory.Sixes => Sixes.HasValue,
+
+            ScoreCategory.ThreeOfAKind => ThreeOfAKind.HasValue,
+            ScoreCategory.FourOfAKind => FourOfAKind.HasValue,
+            ScoreCategory.FullHouse => FullHouse.HasValue,
+            ScoreCategory.SmallStraight => SmallStraight.HasValue,
+            ScoreCategory.LargeStraight => LargeStraight.HasValue,
+            ScoreCategory.Yahtzee => Yahtzee.HasValue,
+            ScoreCategory.Chance => Chance.HasValue,
+
+            _ => false
+        };
+    }
 }
