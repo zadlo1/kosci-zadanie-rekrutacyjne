@@ -203,7 +203,7 @@ Priorytety sprawdzane po kolei:
 1. `rollsLeft == 0` → zatrzymaj wszystkie (koniec rzutów)
 2. Duży strit → zatrzymaj wszystkie
 3. Mały strit (kategoria wolna) → zatrzymaj cztery kości tworzące strit, rzuć piątą
-4. Pięć jednaków → zatrzymaj wszystkie
+4. Pięć jednakowych → zatrzymaj wszystkie
 5. Full → zatrzymaj wszystkie
 6. Cztery jednakowe → zatrzymaj cztery
 7. Trzy jednakowe → zatrzymaj trójkę
